@@ -21,6 +21,7 @@ function App() {
             <li key={post.id}>
               <h3>{post.title}</h3>
               <p>{post.content}</p>
+              <p>{post.writer}</p>
               <hr />
             </li>
           ))}
