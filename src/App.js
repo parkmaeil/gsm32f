@@ -1,33 +1,16 @@
-import React, { useEffect, useState } from 'react';
+// App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
 
 function App() {
-  const [gsmList, setGsmList] = useState([]);
-
-  useEffect(() => {
-    fetch('http://localhost:8081/api/board')
-      .then(res => res.json())
-      .then(data => setGsmList(data))
-      .catch(err => console.error('에러 발생:', err));
-  }, []);
-
   return (
-    <div style={{ padding: 20 }}>
-      <h1>📄 GSM 게시글 리스트</h1>
-      {gsmList.length === 0 ? (
-        <p>불러오는 중...</p>
-      ) : (
-        <ul>
-          {gsmList.map(post => (
-            <li key={post.id}>
-              <h3>{post.title}</h3>
-              <p>{post.content}</p>
-              <p>{post.writer}</p>
-              <hr />
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        {/* 다른 라우트들 */}
+      </Routes>
+    </Router>
   );
 }
 
