@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 function Cart() {
  
   const [customers, setCustomers] = useState([]);
-  const [username, setUsername] = useState('user5');
+  const [username, setUsername] = useState('user1');
 
   useEffect(() => {
     fetchCustomerCart(username);
