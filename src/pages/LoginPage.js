@@ -25,10 +25,10 @@ const LoginPage = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await res.json(); // { "token" : "sassasasasa"}
 
       if (res.ok && data.token) {
-        setToken(data.token);
+        setToken(data.token); // 리렌더링링
         localStorage.setItem('jwt', data.token); // JWT 저장
         setErrorMsg('');
         alert('로그인 성공!'); // or navigate to homepage

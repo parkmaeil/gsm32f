@@ -1,1 +1,2 @@
 npm install @mui/material @emotion/react @emotion/styled react-router-dom
+@CrossOrigin(origins = "http://localhost:3000")
