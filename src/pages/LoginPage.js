@@ -1,93 +1,76 @@
 // src/pages/LoginPage.js
-import React, { useState } from 'react';
-import {
-  Container,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Alert,
-} from '@mui/material';
+import React, { useState, useContext } from 'react';
+import { Container, TextField, Button, Box, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
 
-const LoginPage = () => {
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [token, setToken] = useState(null);
+  const [error, setError] = useState(null);
 
-  const handleLogin = async () => {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
     try {
       const res = await fetch('http://localhost:8081/auth/token', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json(); // { "token" : "sassasasasa"}
-
-      if (res.ok && data.token) {
-        setToken(data.token); // 리렌더링링
-        localStorage.setItem('jwt', data.token); // JWT 저장
-        setErrorMsg('');
-        alert('로그인 성공!'); // or navigate to homepage
-      } else {
-        setErrorMsg('이메일 또는 비밀번호가 잘못되었습니다.');
+      if (!res.ok) {
+        throw new Error('인증에 실패했습니다. 다시 시도해주세요.');
       }
-    } catch (error) {
-      setErrorMsg('서버 오류가 발생했습니다.');
+
+      // { "token": "..." } 형태로 넘어오기 때문에 token 프로퍼티를 꺼냅니다.
+      const data = await res.json();
+      const jwtToken = data.token;
+
+      login(jwtToken); // AuthContext에 저장
+      setError(null);
+      navigate('/'); // 홈으로 이동
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, p: 4, boxShadow: 3, borderRadius: 2 }}>
-        <Typography variant="h5" gutterBottom>
-          로그인
-        </Typography>
-
+    <Container maxWidth="xs" sx={{ textAlign: 'center', mt: 4 }}>
+      <Typography variant="h5" gutterBottom>
+        로그인
+      </Typography>
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <TextField
-          fullWidth
           label="이메일"
           type="email"
-          margin="normal"
+          fullWidth
+          required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          sx={{ mb: 2 }}
         />
         <TextField
-          fullWidth
           label="비밀번호"
           type="password"
-          margin="normal"
+          fullWidth
+          required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          sx={{ mb: 2 }}
         />
-
-        {errorMsg && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {errorMsg}
-          </Alert>
-        )}
-
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 3 }}
-          onClick={handleLogin}
-        >
+        <Button type="submit" variant="contained" fullWidth>
           로그인
         </Button>
-
-        {token && (
-          <Alert severity="success" sx={{ mt: 2 }}>
-            로그인 성공! 토큰: {token.substring(0, 20)}...
-          </Alert>
-        )}
       </Box>
+      {error && (
+        <Typography color="error" sx={{ mt: 2 }}>
+          {error}
+        </Typography>
+      )}
     </Container>
   );
-};
-
-export default LoginPage;
+}
