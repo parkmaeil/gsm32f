@@ -1,17 +1,11 @@
 // src/Layout.js
 import React, { useContext } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 
 export default function Layout({ children }) {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const onLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const { user } = useContext(AuthContext);
 
   return (
     <>
@@ -30,7 +24,8 @@ export default function Layout({ children }) {
           {user ? (
             <>
               <Typography sx={{ mr: 2 }}>{user.email}님</Typography>
-              <Button color="inherit" onClick={onLogout}>
+              {/* 로그아웃은 /logout 으로만 이동 */}
+              <Button color="inherit" component={Link} to="/logout">
                 로그아웃
               </Button>
             </>
