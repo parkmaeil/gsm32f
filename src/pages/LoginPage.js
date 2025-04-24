@@ -3,36 +3,38 @@ import React, { useState, useContext } from 'react';
 import { Container, TextField, Button, Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
+import { jwtDecode } from 'jwt-decode';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError]       = useState(null);
 
   const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const res = await fetch('http://localhost:8081/auth/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+      if (!res.ok) throw new Error('인증에 실패했습니다. 다시 시도해주세요.');
 
-      if (!res.ok) {
-        throw new Error('인증에 실패했습니다. 다시 시도해주세요.');
+      const { token } = await res.json();
+      login(token);  // Context에 저장
+
+      // 권한 분기 이동
+      const d = jwtDecode(token);
+      const roles = d.scope?.split(' ') || [];
+      if (roles.includes('ROLE_ADMIN')) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/', { replace: true });
       }
-
-      // { "token": "..." } 형태로 넘어오기 때문에 token 프로퍼티를 꺼냅니다.
-      const data = await res.json();
-      const jwtToken = data.token;
-
-      login(jwtToken); // AuthContext에 저장
       setError(null);
-      navigate('/'); // 홈으로 이동
     } catch (err) {
       setError(err.message);
     }
@@ -50,7 +52,7 @@ export default function LoginPage() {
           fullWidth
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
           sx={{ mb: 2 }}
         />
         <TextField
@@ -59,7 +61,7 @@ export default function LoginPage() {
           fullWidth
           required
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
           sx={{ mb: 2 }}
         />
         <Button type="submit" variant="contained" fullWidth>

@@ -5,6 +5,8 @@ import { AuthProvider } from './AuthContext';
 import Layout from './Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import RequireRole from './RequireRole';
+import AdminPage   from './pages/AdminPage';
 
 export default function App() {
   return (
@@ -12,8 +14,18 @@ export default function App() {
       <AuthProvider>
         <Layout>
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="login" element={<LoginPage />} />
+            <Route path="/"      element={<HomePage />}  />
+            <Route path="login"  element={<LoginPage />} />
+
+            {/* Admin 전용 페이지 */}
+            <Route
+              path="admin"
+              element={
+                <RequireRole role="ROLE_ADMIN">
+                  <AdminPage />
+                </RequireRole>
+              }
+            />
           </Routes>
         </Layout>
       </AuthProvider>

@@ -10,33 +10,46 @@ export const AuthContext = createContext({
 });
 
 export function AuthProvider({ children }) {
-  // 초기값: 로컬스토리지에 남아 있는 토큰
+  // 초기 토큰과 사용자 정보 동기화
   const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const [user, setUser] = useState(null);
-
-  // token이 바뀔 때마다 디코딩 & 로컬스토리지 업데이트
-  useEffect(() => {
-    if (token) {
-      // 1) 토큰이 있으면 로컬스토리지에 최신화
-      localStorage.setItem('token', token);
-      // 2) 토큰 디코딩하여 user 상태 설정
-      try {
-        const decoded = jwtDecode(token);
-        // decoded에 담긴 이메일 필드 이름(sub/email 등)에 맞춰 추출
-        setUser({ email: decoded.sub || decoded.email });
-      } catch {
-        // 디코딩 실패 시 user를 null로
-        setUser(null);
-      }
-    } else {
-     // 토큰이 없으면 (로그아웃 등) 로컬스토리지 삭제 & user 초기화
-      localStorage.removeItem('token');
-      setUser(null);
+  const [user, setUser]   = useState(() => {
+    const t = localStorage.getItem('token');
+    if (!t) return null;
+    try {
+      const d = jwtDecode(t);
+      return {
+        email: d.sub || d.email,
+        roles: d.scope?.split(' ') || []
+      };
+    } catch {
+      return null;
     }
+  });
+
+  // 토큰 변경 시 로컬스토리지만 동기화
+  useEffect(() => {
+    if (token) localStorage.setItem('token', token);
+    else      localStorage.removeItem('token');
   }, [token]);
 
-  const login = (newToken) => setToken(newToken);
-  const logout = () => setToken(null);
+  // 로그인: 토큰 저장 & user 즉시 세팅
+  const login = (newToken) => {
+    setToken(newToken);
+    try {
+      const d = jwtDecode(newToken);
+      setUser({
+        email: d.sub || d.email,
+        roles: d.scope?.split(' ') || []
+      });
+    } catch {
+      setUser(null);
+    }
+  };
+  // 로그아웃: 토큰·user 초기화
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+  };
 
   return (
     <AuthContext.Provider value={{ token, user, login, logout }}>
